@@ -1,0 +1,67 @@
+# --time def
+variable TIME_STEPS     equal xxx
+variable THERMO_STEP    equal 5000 #every 0.01 ns
+variable DUMP_STEP      equal 50000 #every 0.1 ns
+variable dt				equal 0.002
+
+variable NUM_INTERVALS  equal 10
+variable D_TIME_STEPS   equal ${TIME_STEPS}/${NUM_INTERVALS}
+
+# --temp def
+variable T              equal xxx
+variable T_DAMP         equal 1
+
+# --press def
+variable P              equal 1
+variable P_DAMP         equal 10
+variable NRESET         equal 100000
+
+
+# --init--
+boundary    p p p
+
+
+# --atom def--
+read_restart restart_num_x.restart
+
+# --settings--
+pair_style  vashishta
+pair_coeff  * * SiC.vashishta C Si
+
+
+
+# --run--
+timestep        ${dt}
+dump            1 all custom ${DUMP_STEP} traj.dump id type x y z vx vy vz
+thermo_style    custom step time temp press vol etotal ke pe lx ly lz pxx pyy pzz pxy pxz pyz cpuremain
+
+fix             1 all npt temp ${T} ${T} ${T_DAMP} &
+                             x ${P} ${P} ${P_DAMP} &
+                             y ${P} ${P} ${P_DAMP} &
+                             nreset ${NRESET}
+
+thermo          ${THERMO_STEP}
+run 0
+
+variable myP   equal pzz
+variable p0    equal ${myP}*0.80
+
+variable num_intervals loop ${NUM_INTERVALS}
+
+label loop1
+run ${D_TIME_STEPS}
+variable p equal ${myP}
+write_restart restart_files/creep_num_${num_intervals}.restart
+
+if "${num_intervals} == ${NUM_INTERVALS}" then "jump SELF break"
+
+if "${p} > ${p0}" then &
+    "next num_intervals" &
+    "print 'num_intervals = ${num_intervals}'" &
+    "print 'p = $p, p0 = ${p0}'" &
+    "variable p delete" &
+    "jump SELF loop1" &
+else &
+    "print 'finished'"
+
+label break

@@ -1,0 +1,43 @@
+# --time def
+variable TIME_STEPS     equal 5000000
+variable THERMO_STEP    equal 1000
+variable DUMP_STEP      equal 50000
+variable dt             equal 0.002
+
+variable FINAL_TIME     equal ${TIME_STEPS}*${dt}*0.001 #in ns
+
+# --seed def
+variable SEED           equal 42
+
+variable T0             equal 2200
+variable T1             equal 2200
+variable T_DAMPING      equal 1
+
+
+# --init--
+units       metal
+boundary    p p p
+atom_style  atomic
+
+
+# --atom def--
+read_data "atom_data.data"
+mass 1 12.011 #C
+mass 2 28.085 #Si
+
+# --settings--
+pair_style  vashishta
+pair_coeff  * * SiC.vashishta C Si
+
+# --run--
+timestep        ${dt}
+dump            1 all custom ${DUMP_STEP} traj_${FINAL_TIME}ns.dump id type x y z
+velocity        all create ${T0} ${SEED}
+thermo_style    custom cpuremain time step temp press
+fix             1 all nvt temp ${T0} ${T1} ${T_DAMPING}
+
+thermo ${THERMO_STEP}
+run ${TIME_STEPS}
+
+# --restart data
+write_restart inverted_sphere_T${T0}.restart

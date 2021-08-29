@@ -1,0 +1,61 @@
+# --time def
+variable TIME_STEPS equal 50000000 
+variable THERMO_STEP    equal 100
+variable DUMP_STEP      equal 25000
+variable dt				equal 0.002
+variable EQUIL_STEPS    equal 15000
+variable FINAL_TIME     equal ${TIME_STEPS}*${dt}*0.001 #in ns
+
+# --seed def
+variable SEED           equal 42
+
+# -- temp def
+variable T equal 2200 
+variable T_DAMP         equal 1
+
+# -- press def
+variable P              equal 0
+variable P_DAMP         equal 10
+
+# --deform def
+variable DEFORM_SCALE equal {self.deform_scale} 
+variable DEFORM_FREQ    equal 10
+variable NRESET         equal 100000
+
+# --init--
+boundary    p p p
+
+
+# --atom def--
+read_restart inverted_crystal_T2200.restart
+# --settings--
+pair_style  vashishta
+pair_coeff  * * SiC.vashishta C Si
+
+
+# --settings
+timestep        ${dt}
+dump            1 all custom ${DUMP_STEP} trajectories.dump id type x y z vx vy vz
+thermo_style    custom step time temp press vol etotal ke pe lx ly lz pxx pyy pzz pxy pxz pyz spcpu cpuremain
+
+
+# --equilibration
+fix             1 all npt temp ${T} ${T} ${T_DAMP} aniso ${P} ${P} ${P_DAMP}
+
+thermo          ${THERMO_STEP}
+
+run             ${EQUIL_STEPS}
+unfix 1
+
+# --run
+fix             1 all deform ${DEFORM_FREQ} z scale ${DEFORM_SCALE}
+fix             2 all npt temp ${T} ${T} ${T_DAMP} &
+                                    x ${P} ${P} ${P_DAMP} &
+                                    y ${P} ${P} ${P_DAMP} &
+                                    nreset ${NRESET}
+
+run             ${TIME_STEPS}
+
+
+# --restart data
+write_restart restart_${FINAL_TIME}ns.restart

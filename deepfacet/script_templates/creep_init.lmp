@@ -1,0 +1,109 @@
+# --time def
+variable T_INTERVAL_1   equal 250000 # 0.5 ns
+variable T_INTERVAL_2   equal 25000 # 0.05 ns
+variable THERMO_STEP    equal 5000 #every 0.01 ns
+variable DUMP_STEP      equal 50000 #every 0.1 ns
+variable dt				equal 0.002
+variable FINAL_TIME     equal ${TIME_STEPS}*${dt}*0.001
+
+
+variable SEED           equal 42
+
+# --temp def
+variable T              equal xxx
+variable T_DAMP         equal 1
+
+# --press def
+variable P              equal 1
+variable P_DAMP         equal 10
+
+# --deform def
+variable ERATE          equal xxx
+variable DEFORM_SCALE   equal 0.85
+variable DEFORM_FREQ    equal 10
+variable NRESET         equal 100000
+
+
+# --def target strain
+variable target_strain equal xxx
+
+
+# --init--
+boundary    p p p
+
+
+# --atom def--
+read_restart inverted_crystal_T${T}.restart
+
+# --settings--
+pair_style  vashishta
+pair_coeff  * * SiC.vashishta C Si
+
+
+# --computes--
+fix             1 all deform ${DEFORM_FREQ} z erate ${ERATE}
+
+
+#--run--
+timestep        ${dt}
+dump            1 all custom ${DUMP_STEP} traj.dump id type x y z vx vy vz
+thermo_style    custom step time temp press vol etotal ke pe lx ly lz pxx pyy pzz pxy pxz pyzcpuremain
+
+fix             2 all npt temp ${T} ${T} ${T_DAMP} &
+                                    x ${P} ${P} ${P_DAMP} &
+                                    y ${P} ${P} ${P_DAMP} &
+                                    nreset ${NRESET}
+
+thermo          ${THERMO_STEP}
+
+variable l equal lz
+variable l0 equal $l
+variable num_intervals_1 loop 100
+
+label init_deform_loop
+
+run             ${T_INTERVAL_1}
+
+variable curr_strain equal (${l0}-lz)/${l0}
+print "strain = ${curr_strain}, target_strain = ${target_strain}"
+
+if "${curr_strain} < ${target_strain}" then &
+    "next num_intervals_1" &
+    "jump SELF init_deform_loop" &
+else &
+    "print 'init fine creep at interval ${num_intervals_1}!'"
+
+# --fine deform run
+variable Pzz equal pzz
+variable pzz_0 equal ${Pzz}*0.75
+variable num_intervals_2 loop 100
+
+
+
+label fine_deform_loop
+write_restart restart_files/restart_num_${num_intervals_2}.restart
+run ${T_INTERVAL_2}
+
+
+if "${Pzz} > ${pzz_0}" then &
+    "next num_intervals_2" &
+    "print 'num_intervals_2 = ${num_intervals_2}'" &
+    "jump SELF fine_deform_loop" &
+else &
+    "print 'pzz = ${Pzz}, finished.'"
+
+write_restart restart_files/after_failure.restart
+
+
+
+
+
+
+
+
+
+
+
+
+
+#
