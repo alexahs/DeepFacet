@@ -1,5 +1,5 @@
 # --time def--
-variable TIME_STEPS		equal 15000000 #30 ns 
+variable TIME_STEPS	equal 15000000 #30 ns 
 variable THERMO_STEP    equal 10
 variable DUMP_STEP      equal 50000 #0.1ns
 variable EQUIL_STEPS1   equal 15000 #initial temp/press equil
