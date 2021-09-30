@@ -184,7 +184,8 @@ if __name__ == '__main__':
 
     grid = PoreGrid(50, 15, (3,3,3))
     grid.create_from_points(c)
-
+    grid.create_random_regular(p=0.4)
+    grid._ovito_write("random.data")
 
 
 
