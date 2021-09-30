@@ -93,17 +93,3 @@ else &
     "print 'pzz = ${Pzz}, finished.'"
 
 write_restart restart_files/after_failure.restart
-
-
-
-
-
-
-
-
-
-
-
-
-
-#
