@@ -7,7 +7,6 @@ import matplotlib.pyplot as plt
 from molecular_builder import create_bulk_crystal, carve_geometry, write
 from molecular_builder.geometry import SphereGeometry, PlaneGeometry
 from ovito.io import import_file, export_file
-# sys.path.append(".")
 import settings
 
 class ScriptBuilder:
@@ -20,7 +19,7 @@ class ScriptBuilder:
 
     @property
     def timesteps(self):
-        n_steps = self.t/self.dt*1000
+        n_steps = self.t/self.dt*1000 
         return int(n_steps)
 
     @staticmethod
@@ -78,6 +77,7 @@ class ScriptBuilder:
         self._build_cont()
 
     def _prepare_lmp_script(self, lmp_template):
+        # pure virtual
         return NotImplementedError
 
     def _build_cont(self):
@@ -126,7 +126,7 @@ class DeformSingle(ScriptBuilder):
     Params:
     * T: system temperature [K]
     * t: simulation time [ns]
-    * deform scale: final z-length of simulation box [percent]
+    * deform scale: final z-length of simulation box [ratio]
     """
     def __init__(self, T, t, scale=0.85):
         super().__init__()
