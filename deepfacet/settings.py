@@ -3,6 +3,7 @@
 
 FORCE_FIELD = "script_templates/SiC.vashishta"
 STANDARD_JOB_TEMPLATE = "script_templates/job_template.sh"
+MULTI_JOB_TEMPLATE = "script_templates/job_template_multirun.sh"
 TMP_ATOMS_PATH = "data/tmp"
 
 DEFORM_SINGLE_SIMS = "simulations/single_pore/deformation"
