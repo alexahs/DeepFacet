@@ -23,6 +23,7 @@ class System:
         self.run_template = run_template
         self.template_dir = "script_templates/"
 
+
     @property
     def num_timesteps(self):
         dt = 0.002

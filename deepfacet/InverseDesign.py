@@ -1,5 +1,5 @@
 import sys, os, subprocess
-sys.path.append("../")
+sys.path.append("models/")
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
